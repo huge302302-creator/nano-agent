@@ -102,34 +102,37 @@ def run_agent(client, task, max_iterations=8):
     messages = [
         {"role": "system", "content": "你是一个简洁的助手，可以使用工具。"},
         {"role": "user", "content": task},
-    ]
+    ]            ##这是发给大模型的messages，里面有用户的任务和之前的对话记录
+    #role: "system"：给模型的人设/规则说明书，"你是一个简洁的助手，可以使用工具"
+    #role: "user"：用户的任务，比如"看看目录再读 README.md"
 
     for iteration in range(1, max_iterations + 1):
         print(f"\n{'-' * 60}")
         print(f"第 {iteration} 轮：把 {len(messages)} 条消息发给模型")
         print(f"{'-' * 60}")
+        #只是帮你观察 Agent 每轮在干什么，学习阶段很有用，并不是关键部分
 
-        response = client.chat.completions.create(
-            model=MODEL,
-            messages=messages,
-            tools=TOOLS,
+        response = client.chat.completions.create(   #client是前面建好的客户端
+            model=MODEL,          #用哪个模型
+            messages=messages,         #对话历史
+            tools=TOOLS,         #工具菜单
         )
-        message = response.choices[0].message
-        messages.append(message)
+        message = response.choices[0].message        #取出模型的回复
+        messages.append(message)                  #把模型的回复也append进对话历史中
 
         # 没有 tool_calls：模型给出了最终回答，循环结束
         if not message.tool_calls:
             return message.content
 
         # 有 tool_calls：逐个执行
-        for tool_call in message.tool_calls:
+        for tool_call in message.tool_calls:      #循环：模型可能一次要求调用多个工具
             name = tool_call.function.name
             # 素版没有做 JSON 解析保护；生产版 agent.py 会处理坏参数。
             arguments = json.loads(tool_call.function.arguments)
 
             print(f"模型请求：{name}({arguments})")
 
-            if name not in FUNCTIONS:
+            if name not in FUNCTIONS:     
                 result = f"Error: Unknown tool '{name}'"
             else:
                 result = FUNCTIONS[name](**arguments)
@@ -143,20 +146,23 @@ def run_agent(client, task, max_iterations=8):
                     "content": str(result),
                 }
             )
-
+        #执行工具进入messages，下一轮循环会把这个结果发给模型，让模型继续思考下一步要做什么
         # 本轮工具执行完，进入下一轮
 
     return "Max iterations reached（达到最大轮数，任务可能没有完成）"
 
 
-def main():
+def main():                   #程序的主调度
     client = create_client()
 
     if len(sys.argv) > 1:
-        task = " ".join(sys.argv[1:])
+        task = " ".join(sys.argv[1:])   #如果跟着有命令的话，把命令取出来加入task
     else:
-        task = "先看看当前目录里有哪些文件，再读取 README.md，用三句话总结这个项目。"
-
+        task = "先看看当前目录里有哪些文件，再读取 README.md，用三句话总结这个项目。"  #如果不跟着命令，则会按照这个默认去走
+    ## 敲法一：只敲脚本名，后面什么都不加
+     #python steps/04_agent_loop.py
+    ## 敲法二：脚本名后面跟一句话
+     #python steps/04_agent_loop.py "帮我看看目录里有什么"
     print(f"任务：{task}")
     answer = run_agent(client, task)
     print(f"\n{'=' * 60}")
