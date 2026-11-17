@@ -2,6 +2,24 @@
 
 [中文](./README_CN.md) | English
 
+## 我的学习笔记
+
+我正在从零学习 Agent 开发，这个仓库是我的学习记录，基于 [sanbuphy/nanoAgent](https://github.com/sanbuphy/nanoAgent) 的教学版（感谢原作者）。
+
+**目前进度**：已逐行读完 `steps/04_agent_loop.py`（完整 Agent 循环），并在代码中补充了自己的理解注释；新增 `run.py` 与 `steps/tools.py` 作为练习。
+
+**我理解到的核心**：
+- Agent 没有魔法，就是一个循环：**请求模型 → 执行工具 → 结果回填 messages → 再请求**
+- 这是 **ReAct 思想**（推理→行动→观察）用 **OpenAI 原生 Function Calling** 的实现，比提示词解析版更可靠
+- `messages` 是 Agent 的短期记忆：模型无状态，每轮都要重发完整历史
+- 工具结果必须以 `role: "tool"` + `tool_call_id` 回填，与模型的请求配对
+- 两个退出条件：模型不再返回 `tool_calls`（完成）/ 达到 `max_iterations`（保险丝）
+- 错误作为字符串返回而非抛异常，让模型有机会自我纠错
+
+**下一步**：读根目录 `agent.py`（人工确认 + 错误处理），再看 `agent-plus.py`（规划 + 记忆）。
+
+---
+
 > *"The question is not what you look at, but what you see."* — Henry David Thoreau
 
 The simplest way to build an agent that can interact with your system.
