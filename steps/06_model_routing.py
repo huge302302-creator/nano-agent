@@ -18,8 +18,8 @@
     - 注意：路由的是【选哪个模型】，不是【走哪条业务分支】——别和内容路由搞混
 
 可配置（环境变量）：
-    OPENAI_CHEAP_MODEL   便宜模型，默认 gpt-4o-mini
-    OPENAI_STRONG_MODEL  昂贵模型，默认 gpt-4o
+    OPENAI_CHEAP_MODEL   便宜模型，默认 deepseek-flash
+    OPENAI_STRONG_MODEL  昂贵模型，默认 deepseek-v4-pro
 """
 
 import json
@@ -30,8 +30,8 @@ from openai import OpenAI
 
 
 # 两个档次的模型，都可用环境变量覆盖，方便你接 DeepSeek/通义 等兼容接口
-CHEAP_MODEL = os.environ.get("OPENAI_CHEAP_MODEL", "gpt-4o-mini")
-STRONG_MODEL = os.environ.get("OPENAI_STRONG_MODEL", "gpt-4o")
+CHEAP_MODEL = os.environ.get("OPENAI_CHEAP_MODEL", "deepseek-flash")     # 便宜档
+STRONG_MODEL = os.environ.get("OPENAI_STRONG_MODEL", "deepseek-v4-pro")  # 贵档
 
 # ---------------- 和 04 完全相同的部分：工具 ----------------
 

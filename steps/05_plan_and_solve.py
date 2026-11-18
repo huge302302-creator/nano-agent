@@ -27,7 +27,8 @@ import sys
 from openai import OpenAI
 
 
-MODEL = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
+# 模型名做成可配置：设 DEMO_MODEL 环境变量可覆盖；默认用 DeepSeek Pro 档（demo 不笨）
+MODEL = os.environ.get("DEMO_MODEL", "deepseek-v4-pro")
 
 # ---------------- 和 04 完全相同的部分：工具 ----------------
 
@@ -123,7 +124,7 @@ def _parse_plan(raw_text):
     return [raw_text.strip()]
 
 
-def create_plan(client, task):
+def create_plan(client, task):               #create _plan() 规划阶段：只让模型输出"分几步"，不调用工具，只调用一次
     """
     规划阶段：单独调用一次模型，**不带任何工具**，让它只输出"分几步"。
 
@@ -146,7 +147,7 @@ def create_plan(client, task):
                     "不要执行任何操作，不要解释，不要输出多余文字。"
                 ),
             },
-            {"role": "user", "content": task},
+            {"role": "user", "content": task},                #无法物理调用工具，而04中是给了工具的调用的
         ],
     )
     plan = _parse_plan(response.choices[0].message.content)
@@ -156,7 +157,7 @@ def create_plan(client, task):
     return plan
 
 
-# ---------------- 新增 ②：执行单个步骤（内部就是你熟悉的 04 循环） ----------------
+# ---------------- 新增 ②：执行单个步骤（内部就是熟悉的 04 循环） ----------------
 
 def run_agent_step(client, messages, step_instruction, max_iterations=4):
     """
